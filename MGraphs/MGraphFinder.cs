@@ -1,6 +1,5 @@
 ﻿using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
 
 namespace MGraphs
 {
@@ -8,66 +7,67 @@ namespace MGraphs
     {
         public static List<bool[,]> GenerateMGraphs(int n)
         {
-            var startList = new List<Point>();
-            var finalEdges = new List<List<Point>>();
-            startList.Add(new Point(n - 2, n - 1));
-            startList.Add(new Point(n - 3, n - 1));
-            GenerateMGraphsR(startList, finalEdges);
+            if (n <= 5)
+                return new List<bool[,]> { GenerateMGraph(n) };
 
-            return finalEdges.Select(EdgesToGraph).ToList();
+            var startList = new List<Point>();
+            var graphs = new List<bool[,]>();
+            startList.Add(new Point(n - 4, n - 3));
+            startList.Add(new Point(n - 5, n - 3));
+            GenerateMGraphsR(startList, graphs);
+
+            return graphs;
         }
 
-        private static bool[,] EdgesToGraph(List<Point> edges)
+        public static bool[,] GenerateMGraph(int n)
         {
-            var graph = new bool[edges[0].Y + 1, edges[0].Y + 1];
+            if (n <= 0)
+                return new bool[0, 0];
+            if (n <= 3)
+                return GetBasicMGraph(n);
 
-            foreach (var point in edges)
-                graph[point.X, point.Y] = graph[point.Y, point.X] = true;
+            var graph = GetBasicMGraph(n);
+            graph[0, n - 1] = graph[n - 1, 0] = true;
+            for (int i = 1; i < n - 1; i++)
+                graph[0, i] = graph[i, 0] = graph[i, n - 1] = graph[n - 1, i] = true;
 
             return graph;
         }
 
-        private static void GenerateMGraphsR(List<Point> currentEdges, List<List<Point>> finalPaths)
+        private static void GenerateMGraphsR(List<Point> currentEdges, List<bool[,]> graphs)
         {
             var lastPoint = currentEdges[currentEdges.Count - 1];
             if (lastPoint.X == 0)
             {
+                var graph = GetBasicMGraph(currentEdges[0].Y + 3);
+
+                foreach (var point in currentEdges)
+                    graph[point.X, point.Y + 2] = graph[point.Y + 2, point.X] = true;
+
                 for (int i = lastPoint.Y - 1; i >= 1; i--)
-                    currentEdges.Add(new Point(0, i));
-                finalPaths.Add(currentEdges);
+                    graph[0, i + 2] = graph[i + 2, 0] = true;
+
+                graphs.Add(graph);
                 return;
             }
 
             var currentCount = currentEdges.Count;
 
             currentEdges.Add(new Point(lastPoint.X - 1, lastPoint.Y));
-            GenerateMGraphsR(currentEdges, finalPaths);
+            GenerateMGraphsR(currentEdges, graphs);
+            currentEdges.RemoveAt(currentCount);
 
             if (lastPoint.Y <= lastPoint.X + 1)
                 return;
 
-            var newList1 = new List<Point>(currentCount + 1);
-            for (int i = 0; i < currentCount; i++)
-                newList1.Add(currentEdges[i]);
-
-            newList1.Add(new Point(lastPoint.X, lastPoint.Y - 1));
-            GenerateMGraphsR(newList1, finalPaths);
+            currentEdges.Add(new Point(lastPoint.X, lastPoint.Y - 1));
+            GenerateMGraphsR(currentEdges, graphs);
+            currentEdges.RemoveAt(currentCount);
         }
 
-        private static bool[,] CopyGraph(bool[,] graph)
-        {
-            var newGraph = new bool[graph.GetLength(0), graph.GetLength(0)];
-            for (int i = 0; i < graph.GetLength(0); i++)
-                for (int j = 0; j < graph.GetLength(1); j++)
-                    newGraph[i, j] = graph[i, j];
-
-            return newGraph;
-        }
-
-        private static bool[,] GetBasicGraph(int n)
+        private static bool[,] GetBasicMGraph(int n)
         {
             var graph = new bool[n, n];
-            return graph;
             for (int i = 0; i < n - 2; i++)
                 graph[i, i + 1] = graph[i + 1, i] = graph[i, i + 2] = graph[i + 2, i] = true;
 

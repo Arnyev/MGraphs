@@ -96,7 +96,7 @@ namespace MGraphs
             InitializeComponent();
             viewerB.MouseClick += ViewerB_MouseClick;
 
-            for (int i = 7; i < 12; i++)
+            for (int i = 4; i < 16; i++)
             {
                 var list = MGraphFinder.GenerateMGraphs(i);
 
